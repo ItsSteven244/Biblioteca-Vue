@@ -14,12 +14,10 @@
       </div>
 
       <nav class="opciones">
-        <!-- Inicio: SIEMPRE -->
         <RouterLink to="/menu" class="opcion">
           <i class="fas fa-home"></i> Inicio
         </RouterLink>
 
-        <!-- Libros (solo Admin navega) -->
         <RouterLink v-if="isAdmin" to="/libros" class="opcion">
           <i class="fas fa-book"></i> Libros
         </RouterLink>
@@ -27,7 +25,6 @@
           <i class="fas fa-book"></i> Libros
         </a>
 
-        <!-- Préstamos (solo Admin navega) -->
         <RouterLink v-if="isAdmin" to="/prestamos" class="opcion">
           <i class="fas fa-hourglass-half"></i> Préstamos
         </RouterLink>
@@ -35,7 +32,6 @@
           <i class="fas fa-hourglass-half"></i> Préstamos
         </a>
 
-        <!-- Estudiantes (solo Admin navega) -->
         <RouterLink v-if="isAdmin" to="/estudiantes" class="opcion">
           <i class="fas fa-user-graduate"></i> Estudiantes
         </RouterLink>
@@ -43,7 +39,6 @@
           <i class="fas fa-user-graduate"></i> Estudiantes
         </a>
 
-        <!-- Administración (se puede abrir para TODOS) -->
         <div class="submenu" :class="{ open: submenuOpen }" ref="submenuRef">
           <a href="javascript:void(0);" class="opcion" @click="toggleSubmenu">
             <span><i class="fas fa-cogs"></i> Administración</span>
@@ -51,7 +46,6 @@
           </a>
 
           <ul class="subopciones">
-            <!-- Usuarios (solo Admin navega) -->
             <li>
               <RouterLink v-if="isAdmin" to="/usuarios">
                 <i class="fas fa-users"></i> Usuarios
@@ -61,7 +55,6 @@
               </a>
             </li>
 
-            <!-- Cambio de clave (SIEMPRE) -->
             <li>
               <a href="javascript:void(0);" @click="abrirCambioClave">
                 <i class="fas fa-key"></i> Cambio de clave
@@ -75,7 +68,6 @@
     <main class="contenido">
       <h1 class="titulo">Panel de Administración</h1>
 
-      <!-- Tarjetas (solo Admin navega) -->
       <section class="tarjetas">
         <RouterLink v-if="isAdmin" to="/libros" class="tarjeta">
           <span class="ico"><i class="fas fa-book"></i></span>
@@ -105,7 +97,6 @@
         </a>
       </section>
 
-      <!-- Catálogo de libros: SIEMPRE visible -->
       <section class="panel">
         <h2 class="panel-titulo">Catálogo de Libros</h2>
 
@@ -113,9 +104,10 @@
           <div class="filtro-grupo">
             <label>Filtrar por:</label>
             <select class="filtro-select" v-model="filtroCampo">
+              <option value="todo">Todo</option>
               <option value="materia">Materia</option>
               <option value="autor">Autor</option>
-              <option value="editorial">Editorial</option>
+              <option value="isbn">ISBN</option>
             </select>
           </div>
 
@@ -207,7 +199,7 @@ const isAdmin = computed(() => userRole.value === "Admin");
 const submenuOpen = ref(false);
 const submenuRef = ref(null);
 
-const filtroCampo = ref("materia");
+const filtroCampo = ref("todo"); // inicia en TODO
 const filtroOperador = ref("igual");
 const filtroValor = ref("");
 const filtroValorRef = ref(null);
@@ -230,15 +222,32 @@ function aplicarFiltros() {
     return;
   }
 
+  const op = filtroOperador.value;
+
+  const match = (text) => {
+    const campo = String(text ?? "").toLowerCase();
+    return op === "igual" ? campo === valor : campo.includes(valor);
+  };
+
   librosMostrados.value = libros.value.filter((l) => {
-    const campo = String(l[filtroCampo.value] ?? "").toLowerCase();
-    return filtroOperador.value === "igual" ? campo === valor : campo.includes(valor);
+    // TODO: busca en varios campos (incluye titulo aunque no esté en el select)
+    if (filtroCampo.value === "todo") {
+      return (
+        match(l.titulo) ||
+        match(l.autor) ||
+        match(l.materia) ||
+        match(l.isbn)
+      );
+    }
+
+    // Campo específico
+    return match(l[filtroCampo.value]);
   });
 }
 
 function limpiarFiltros() {
   filtroValor.value = "";
-  filtroCampo.value = "materia";
+  filtroCampo.value = "todo";
   filtroOperador.value = "igual";
   librosMostrados.value = [...libros.value];
   removerMensajesFiltro();
@@ -292,7 +301,6 @@ onBeforeUnmount(() => {
 <style>
 @import "../styles/Menu.css";
 
-/* Estilo del botón Ver PDF */
 .btn-ver-pdf {
   background-color: #0ea5a5;
   color: #fff;
