@@ -131,6 +131,7 @@
             />
           </div>
 
+          <!-- BOTONES CON ÍCONOS (como en tu código antiguo) -->
           <button class="btn-filtrar" @click="aplicarFiltros">
             <i class="fas fa-filter"></i> Aplicar
           </button>
@@ -140,44 +141,54 @@
           </button>
         </div>
 
+        <div class="paginacion-barra" v-if="librosMostrados.length > 0">
+          <button class="btn-pag" :disabled="paginaActual === 1" @click="irAnterior">
+            ‹ Anterior
+          </button>
+
+          <span class="pag-info">
+            Página {{ paginaActual }} de {{ totalPaginas }}
+          </span>
+
+          <button class="btn-pag" :disabled="paginaActual === totalPaginas" @click="irSiguiente">
+            Siguiente ›
+          </button>
+        </div>
+
         <div class="resultados-caja">
           <div class="libros-grid">
-            <template v-if="librosMostrados.length === 0">
-              <div class="libro-vacio">
-                <i class="fas fa-search"></i>
-                <p>No hay libros registrados</p>
-              </div>
-            </template>
-
-            <div class="libro-card" v-for="libro in librosMostrados" :key="libro.isbn">
+            <div class="libro-card" v-for="libro in librosPaginados" :key="libro.isbn">
               <div class="libro-imagen">
                 <img v-if="libro.logo" :src="libro.logo" :alt="libro.titulo" class="img-libro" />
                 <span v-else class="no-img">Sin imagen</span>
+
+                <!-- BOTÓN PDF FLOTANTE SOBRE LA IMAGEN -->
+                <button
+                  v-if="libro.pdf"
+                  class="btn-pdf-float"
+                  @click.stop="abrirPDF(libro)"
+                  title="Ver PDF"
+                  type="button"
+                >
+                  PDF
+                </button>
               </div>
 
               <div class="libro-info">
                 <h3 class="libro-titulo">{{ libro.titulo }}</h3>
-                <p class="libro-isbn"><strong>ISBN:</strong> {{ libro.isbn }}</p>
+                <p class="libro-isbn">ISBN: {{ libro.isbn }}</p>
 
                 <span class="libro-cantidad" :class="libro.cantidad > 0 ? 'disponible' : 'agotado'">
-                  <i class="fas" :class="libro.cantidad > 0 ? 'fa-check' : 'fa-times'"></i>
                   {{ libro.cantidad }} disponible(s)
                 </span>
 
                 <div class="libro-metadata">
-                  <span><strong>Materia:</strong> {{ libro.materia }}</span>
-                  <span><strong>Autor:</strong> {{ libro.autor }}</span>
-                  <span><strong>Editorial:</strong> {{ libro.editorial }}</span>
+                  <span>Materia: {{ libro.materia }}</span>
+                  <span>Autor: {{ libro.autor }}</span>
+                  <!-- QUITADO: Editorial -->
                 </div>
 
-                <div v-if="libro.pdf" style="margin-top: 12px;">
-                  <button class="btn-ver-pdf" @click.stop="abrirPDF(libro)">
-                    Ver PDF
-                  </button>
-                </div>
-                <div v-else style="margin-top:12px; font-size:13px; color:#6b7280;">
-                  PDF no disponible
-                </div>
+                <!-- (Quitado) botón Ver PDF al final -->
               </div>
             </div>
           </div>
@@ -199,7 +210,7 @@ const isAdmin = computed(() => userRole.value === "Admin");
 const submenuOpen = ref(false);
 const submenuRef = ref(null);
 
-const filtroCampo = ref("todo"); // inicia en TODO
+const filtroCampo = ref("todo");
 const filtroOperador = ref("igual");
 const filtroValor = ref("");
 const filtroValorRef = ref(null);
@@ -207,9 +218,30 @@ const filtroValorRef = ref(null);
 const libros = ref([]);
 const librosMostrados = ref([]);
 
+const paginaActual = ref(1);
+const porPagina = 3;
+
+const totalPaginas = computed(() =>
+  Math.max(1, Math.ceil(librosMostrados.value.length / porPagina))
+);
+
+const librosPaginados = computed(() => {
+  const start = (paginaActual.value - 1) * porPagina;
+  return librosMostrados.value.slice(start, start + porPagina);
+});
+
+function irAnterior() {
+  if (paginaActual.value > 1) paginaActual.value--;
+}
+
+function irSiguiente() {
+  if (paginaActual.value < totalPaginas.value) paginaActual.value++;
+}
+
 function cargarLibros() {
   libros.value = readStorage("libros", []);
   librosMostrados.value = [...libros.value];
+  paginaActual.value = 1;
 }
 
 function aplicarFiltros() {
@@ -219,6 +251,7 @@ function aplicarFiltros() {
   if (!valor) {
     mostrarErrorFiltro(filtroValorRef.value, "Ingrese un valor");
     librosMostrados.value = [...libros.value];
+    paginaActual.value = 1;
     return;
   }
 
@@ -230,19 +263,13 @@ function aplicarFiltros() {
   };
 
   librosMostrados.value = libros.value.filter((l) => {
-    // TODO: busca en varios campos (incluye titulo aunque no esté en el select)
     if (filtroCampo.value === "todo") {
-      return (
-        match(l.titulo) ||
-        match(l.autor) ||
-        match(l.materia) ||
-        match(l.isbn)
-      );
+      return match(l.titulo) || match(l.autor) || match(l.materia) || match(l.isbn);
     }
-
-    // Campo específico
     return match(l[filtroCampo.value]);
   });
+
+  paginaActual.value = 1;
 }
 
 function limpiarFiltros() {
@@ -250,6 +277,7 @@ function limpiarFiltros() {
   filtroCampo.value = "todo";
   filtroOperador.value = "igual";
   librosMostrados.value = [...libros.value];
+  paginaActual.value = 1;
   removerMensajesFiltro();
 }
 
@@ -269,21 +297,15 @@ function abrirCambioClave() {
 }
 
 function abrirPDF(libro) {
-  if (!libro.pdf) return;
-
-  setTimeout(() => {
-    const nuevaPestana = window.open();
-    if (!nuevaPestana) return;
-
-    nuevaPestana.document.write(`
-      <html>
-        <head><title>${libro.titulo}</title></head>
-        <body style="margin:0">
-          <iframe src="${libro.pdf}" style="width:100%;height:100vh;" frameborder="0"></iframe>
-        </body>
-      </html>
-    `);
-  }, 100);
+  const win = window.open();
+  if (!win) return;
+  win.document.write(`
+    <html>
+      <body style="margin:0">
+        <iframe src="${libro.pdf}" style="width:100%;height:100vh" frameborder="0"></iframe>
+      </body>
+    </html>
+  `);
 }
 
 onMounted(() => {
@@ -301,19 +323,62 @@ onBeforeUnmount(() => {
 <style>
 @import "../styles/Menu.css";
 
-.btn-ver-pdf {
-  background-color: #0ea5a5;
-  color: #fff;
-  padding: 6px 12px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 600;
-  transition: background 0.2s;
+/* ===== PAGINACIÓN (estilo original bonito) ===== */
+.paginacion-barra {
+  padding: 14px 20px 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
-.btn-ver-pdf:hover {
-  background-color: #0d9488;
+.pag-info {
+  font-size: 14px;
+  color: #374151;
+  font-weight: 600;
+}
+
+.btn-pag {
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+  transition: background 0.2s, border 0.2s;
+}
+
+.btn-pag:hover:not(:disabled) {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+.btn-pag:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ===== BOTÓN PDF FLOTANTE SOBRE LA IMAGEN ===== */
+.libro-imagen {
+  position: relative;
+}
+
+.btn-pdf-float {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  background: rgba(255, 255, 255, 0.95);
+  cursor: pointer;
+  font-weight: 800;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+}
+
+.btn-pdf-float:hover {
+  filter: brightness(0.98);
 }
 </style>
