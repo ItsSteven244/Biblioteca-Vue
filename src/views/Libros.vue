@@ -109,36 +109,62 @@
           <div class="grid-2">
             <label class="field">
               <span class="field-label">ISBN</span>
-              <input ref="isbnRef" v-model.trim="form.isbn" />
+              <input
+                ref="isbnRef"
+                v-model.trim="form.isbn"
+                placeholder="Ej: 000-0000"
+              />
             </label>
 
             <label class="field">
               <span class="field-label">Título</span>
-              <input ref="tituloRef" v-model.trim="form.titulo" />
+              <input
+                ref="tituloRef"
+                v-model.trim="form.titulo"
+                placeholder="Ej: Título del libro"
+              />
             </label>
           </div>
 
           <div class="grid-2">
             <label class="field">
               <span class="field-label">Cantidad</span>
-              <input ref="cantidadRef" type="number" v-model.number="form.cantidad" />
+              <input
+                ref="cantidadRef"
+                type="number"
+                v-model.number="form.cantidad"
+                placeholder="Ej: 5"
+                min="1"
+              />
             </label>
 
             <label class="field">
               <span class="field-label">Autor</span>
-              <input ref="autorRef" v-model.trim="form.autor" />
+              <input
+                ref="autorRef"
+                v-model.trim="form.autor"
+                placeholder="Ej: Juan Delgado"
+              />
             </label>
           </div>
 
           <div class="grid-2">
             <label class="field">
               <span class="field-label">Editorial</span>
-              <input ref="editorialRef" v-model.trim="form.editorial" />
+              <input
+                ref="editorialRef"
+                v-model.trim="form.editorial"
+                placeholder="Ej: Uleam"
+              />
             </label>
 
             <label class="field">
               <span class="field-label">Materia</span>
-              <input ref="materiaRef" v-model.trim="form.materia" />
+              <input
+                ref="materiaRef"
+                v-model.trim="form.materia"
+                placeholder="Ej: Historia"
+              />
             </label>
           </div>
 
@@ -284,12 +310,15 @@ function openLogoPicker() {
   logoInputRef.value.click();
 }
 function onLogoChange(e) {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
   const reader = new FileReader();
   reader.onload = () => {
     logoPreview.value = reader.result;
     form.value.logo = reader.result;
   };
-  reader.readAsDataURL(e.target.files[0]);
+  reader.readAsDataURL(file);
 }
 
 const pdfInputRef = ref(null);
@@ -298,8 +327,9 @@ function openPdfPicker() {
   pdfInputRef.value.click();
 }
 function onPdfChange(e) {
-  const file = e.target.files[0];
+  const file = e.target.files?.[0];
   if (!file || file.type !== "application/pdf") return;
+
   pdfName.value = file.name;
   const reader = new FileReader();
   reader.onload = () => {
@@ -309,7 +339,7 @@ function onPdfChange(e) {
   reader.readAsDataURL(file);
 }
 
-const form = ref({
+const emptyForm = {
   isbn: "",
   titulo: "",
   cantidad: "",
@@ -320,12 +350,22 @@ const form = ref({
   logo: "",
   pdf: "",
   pdfName: "",
-});
+};
+
+const form = ref({ ...emptyForm });
 
 function openLibroModal() {
+  clearUI();
   modalLibro.value = true;
   isEditMode.value = false;
-  form.value = { ...form.value, logo: "", pdf: "", pdfName: "" };
+  editIndex.value = -1;
+
+  form.value = { ...emptyForm };
+  logoPreview.value = "";
+  pdfName.value = "";
+
+  if (logoInputRef.value) logoInputRef.value.value = "";
+  if (pdfInputRef.value) pdfInputRef.value.value = "";
 }
 
 function closeLibroModal() {
