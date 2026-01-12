@@ -1,0 +1,95 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+.login-page {
+  height: 100vh;
+}
+
+.EstiloVideo {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -1;
+}
+
+.cuadro {
+  background-color: rgb(255, 255, 255);
+  width: 400px;
+  height: 100vh;
+  margin: 0;
+  padding: 20px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.Titulo {
+  position: absolute;
+  bottom: 90px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 2em;
+  color: #d8d6d6;
+  margin: 0;
+}
+
+.Parrafo {
+  position: absolute;
+  bottom: 30px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 1.2em;
+  color: #d8d6d6;
+  margin: 0;
+}
+
+.logo {
+  width: 80%;
+  height: auto;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto;
+}
+
+.campo {
+  width: 80%;
+  margin: 20px auto;
+  height: 40px;
+  font-size: 1em;
+  background-color: rgb(255, 255, 255);
+  border: 1px solid #000000;
+  padding: 10px;
+  box-sizing: border-box;
+  display: block;
+}
+
+.campoError {
+  border-color: red !important;
+}
+
+.botonIS {
+  display: block;
+  margin: 0 auto;
+  background-color: #0f8c8c;
+  color: rgb(255, 255, 255);
+  padding: 7px 100px;
+  font-size: 1.1em;
+  cursor: pointer;
+  border: none;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+.Parrafo2 {
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.7em;
+  color: #413f3f;
+  text-align: center;
+  margin-top: 30px;
+}
