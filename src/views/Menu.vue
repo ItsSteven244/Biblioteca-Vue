@@ -131,7 +131,7 @@
             />
           </div>
 
-          <!-- BOTONES CON ÍCONOS (como en tu código antiguo) -->
+ 
           <button class="btn-filtrar" @click="aplicarFiltros">
             <i class="fas fa-filter"></i> Aplicar
           </button>
@@ -185,10 +185,7 @@
                 <div class="libro-metadata">
                   <span>Materia: {{ libro.materia }}</span>
                   <span>Autor: {{ libro.autor }}</span>
-                  <!-- QUITADO: Editorial -->
                 </div>
-
-                <!-- (Quitado) botón Ver PDF al final -->
               </div>
             </div>
           </div>
@@ -323,7 +320,7 @@ onBeforeUnmount(() => {
 <style>
 @import "../styles/Menu.css";
 
-/* ===== PAGINACIÓN (estilo original bonito) ===== */
+/* ===== PAGINACIÓN ===== */
 .paginacion-barra {
   padding: 14px 20px 0;
   display: flex;
