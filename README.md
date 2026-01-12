@@ -4,10 +4,10 @@ Vue, CSS, JS
 
 ## Contenido
 - `Libros`
-- `Préstamos/`
-- `Estudiantes/`
-- `Usuarios/`
-- `Cambio de clave/`
+- `Préstamos`
+- `Estudiantes`
+- `Usuarios`
+- `Cambio de clave`
 
 ## Autor
 - **Steven Alexis Soledispa Espinales**
